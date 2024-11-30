@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const Register = () => {
+const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
@@ -11,13 +11,13 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://127.0.0.1:8000/register', {
+            const response = await axios.post('http://127.0.0.1:8000/login', {
                 email,
                 password,
             });
             setMessage(response.data.message);
-            // Redirect to login on success
-            navigate('/login');
+            // Redirect to welcome page on success
+            navigate('/welcome', { state: { email } });
         } catch (error) {
             if (error.response) {
                 setMessage('Error: ' + error.response.data.error);
@@ -31,7 +31,7 @@ const Register = () => {
 
     return (
         <div>
-            <h2>Register</h2>
+            <h2>Login</h2>
             <form onSubmit={handleSubmit}>
                 <div>
                     <label>Email:</label>
@@ -51,11 +51,11 @@ const Register = () => {
                         required
                     />
                 </div>
-                <button type="submit">Register</button>
+                <button type="submit">Login</button>
             </form>
             {message && <p>{message}</p>}
         </div>
     );
 };
 
-export default Register;
+export default Login;
