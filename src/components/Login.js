@@ -15,17 +15,12 @@ const Login = () => {
                 email,
                 password,
             });
+
             setMessage(response.data.message);
-            // Redirect to welcome page on success
-            navigate('/welcome', { state: { email } });
+            localStorage.setItem('userEmail', email); // Store email in localStorage
+            navigate('/welcome'); // Redirect to welcome page
         } catch (error) {
-            if (error.response) {
-                setMessage('Error: ' + error.response.data.error);
-            } else if (error.request) {
-                setMessage('Error: No response from server');
-            } else {
-                setMessage('Error: ' + error.message);
-            }
+            setMessage(error.response ? `Error: ${error.response.data.error}` : 'Error: No response from server');
         }
     };
 
@@ -35,21 +30,11 @@ const Login = () => {
             <form onSubmit={handleSubmit}>
                 <div>
                     <label>Email:</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div>
                     <label>Password:</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
                 <button type="submit">Login</button>
             </form>

@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Register from './components/Register';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
+import Notes from './components/Notes';
+
+const isAuthenticated = () => !!localStorage.getItem('userEmail'); // Check if user is logged in
 
 function App() {
     return (
@@ -11,7 +14,8 @@ function App() {
                 <Route path="/" element={<Navigate to="/register" />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/welcome" element={<Welcome />} />
+                <Route path="/welcome" element={isAuthenticated() ? <Welcome /> : <Navigate to="/login" />} />
+                <Route path="/notes" element={isAuthenticated() ? <Notes /> : <Navigate to="/login" />} />
             </Routes>
         </Router>
     );
