@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import '../styles/login.css';
+
+
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -16,11 +19,14 @@ const Login = () => {
                 password,
             });
 
-            setMessage(response.data.message);
-            localStorage.setItem('userEmail', email); // Store email in localStorage
-            navigate('/welcome'); // Redirect to welcome page
+            // Store token and user ID
+            localStorage.setItem('jwtToken', response.data.token);
+            localStorage.setItem('userId', response.data.user.id); // Add this in backend response
+            localStorage.setItem('userEmail', email);
+            
+            navigate('/welcome');
         } catch (error) {
-            setMessage(error.response ? `Error: ${error.response.data.error}` : 'Error: No response from server');
+            setMessage(error.response?.data?.error || 'Login failed');
         }
     };
 
@@ -28,17 +34,23 @@ const Login = () => {
         <div>
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Email:</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                </div>
-                <div>
-                    <label>Password:</label>
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                </div>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
                 <button type="submit">Login</button>
             </form>
-            {message && <p>{message}</p>}
+            {message && <p className="error">{message}</p>}
         </div>
     );
 };

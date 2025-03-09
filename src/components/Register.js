@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import '../styles/register.css';
+
 
 const Register = () => {//this means that we are creating a function called Register
     const [email, setEmail] = useState('');//this means that we are creating a variable called email and a function called setEmail that will be used to update the value of the email variable

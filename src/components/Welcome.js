@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../styles/welcome.css';
+
 
 const Welcome = () => {
     const navigate = useNavigate();
