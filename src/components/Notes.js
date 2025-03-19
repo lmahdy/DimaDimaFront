@@ -3,13 +3,16 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/notes.css';
 
-
 const Notes = () => {
     const [notes, setNotes] = useState([]);
     const [newNote, setNewNote] = useState({ title: '', content: '' });
     const [editingNote, setEditingNote] = useState(null);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    // ✅ Added: Get user roles from localStorage
+    const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]'); // ✅
+    const isAdmin = userRoles.includes('ROLE_ADMIN'); // ✅
 
     const getAuthHeader = () => {
         const token = localStorage.getItem('jwtToken');
@@ -58,7 +61,7 @@ const Notes = () => {
     };
 
     const handleEditNote = (note) => {
-        setEditingNote(note); // Set the note to be edited
+        setEditingNote(note);
         setNewNote({ title: note.title, content: note.content });
     };
 
@@ -119,7 +122,8 @@ const Notes = () => {
                             <p>{note.content}</p>
                             <div className="note-footer">
                                 <small>Created by: {note.createdBy?.email}</small>
-                                {note.createdBy?.id === parseInt(localStorage.getItem('userId')) && (
+                                {/* ✅ Modified: Allow Edit/Delete if user is creator OR is admin */}
+                                {(note.createdBy?.id === parseInt(localStorage.getItem('userId')) || isAdmin) && ( // ✅
                                     <>
                                         <button onClick={() => handleEditNote(note)} className="edit-btn">
                                             Edit
@@ -128,7 +132,7 @@ const Notes = () => {
                                             Delete
                                         </button>
                                     </>
-                                )}
+                                )} {/* ✅ */}
                             </div>
                         </div>
                     ))

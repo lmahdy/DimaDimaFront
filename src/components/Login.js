@@ -21,6 +21,7 @@ const Login = () => {
 
             // Store token and user ID
             localStorage.setItem('jwtToken', response.data.token);
+            localStorage.setItem('userRoles', JSON.stringify(response.data.user.roles));
             localStorage.setItem('userId', response.data.user.id); // Add this in backend response
             localStorage.setItem('userEmail', email);
             
