@@ -5,14 +5,15 @@ import '../styles/notes.css';
 
 const Notes = () => {
     const [notes, setNotes] = useState([]);
-    const [newNote, setNewNote] = useState({ title: '', content: '' });
+    const [newNote, setNewNote] = useState({ title: '', content: '', assignedTo: '' });
     const [editingNote, setEditingNote] = useState(null);
     const [error, setError] = useState('');
+    const [users, setUsers] = useState([]);
     const navigate = useNavigate();
 
-    // ✅ Added: Get user roles from localStorage
-    const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]'); // ✅
-    const isAdmin = userRoles.includes('ROLE_ADMIN'); // ✅
+    // Get user roles from localStorage
+    const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
+    const isAdmin = userRoles.includes('ROLE_ADMIN');
 
     const getAuthHeader = () => {
         const token = localStorage.getItem('jwtToken');
@@ -31,6 +32,18 @@ const Notes = () => {
         fetchNotes();
     }, [navigate]);
 
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/users', getAuthHeader());
+                setUsers(response.data);
+            } catch (error) {
+                handleError(error, 'fetching users');
+            }
+        };
+        fetchUsers();
+    }, [navigate]);
+
     const fetchNotes = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:8000/note', getAuthHeader());
@@ -45,7 +58,7 @@ const Notes = () => {
         try {
             await axios.post('http://127.0.0.1:8000/note/new', newNote, getAuthHeader());
             fetchNotes();
-            setNewNote({ title: '', content: '' });
+            setNewNote({ title: '', content: '', assignedTo: '' });
         } catch (error) {
             handleError(error, 'creating note');
         }
@@ -62,7 +75,7 @@ const Notes = () => {
 
     const handleEditNote = (note) => {
         setEditingNote(note);
-        setNewNote({ title: note.title, content: note.content });
+        setNewNote({ title: note.title, content: note.content, assignedTo: note.assignedTo?.id || '' });
     };
 
     const handleUpdateNote = async (e) => {
@@ -73,7 +86,7 @@ const Notes = () => {
             await axios.put(`http://127.0.0.1:8000/note/${editingNote.id}`, newNote, getAuthHeader());
             fetchNotes();
             setEditingNote(null);
-            setNewNote({ title: '', content: '' });
+            setNewNote({ title: '', content: '', assignedTo: '' });
         } catch (error) {
             handleError(error, 'updating note');
         }
@@ -110,6 +123,17 @@ const Notes = () => {
                     onChange={(e) => setNewNote({...newNote, content: e.target.value})}
                     required
                 />
+                <select
+                    value={newNote.assignedTo}
+                    onChange={(e) => setNewNote({...newNote, assignedTo: e.target.value})}
+                >
+                    <option value="">Assign to...</option>
+                    {users.map(user => (
+                        <option key={user.id} value={user.id}>
+                            {user.email}
+                        </option>
+                    ))}
+                </select>
                 <button type="submit">{editingNote ? 'Update Note' : 'Create Note'}</button>
                 {editingNote && <button onClick={() => setEditingNote(null)}>Cancel</button>}
             </form>
@@ -122,8 +146,8 @@ const Notes = () => {
                             <p>{note.content}</p>
                             <div className="note-footer">
                                 <small>Created by: {note.createdBy?.email}</small>
-                                {/* ✅ Modified: Allow Edit/Delete if user is creator OR is admin */}
-                                {(note.createdBy?.id === parseInt(localStorage.getItem('userId')) || isAdmin) && ( // ✅
+                                {note.assignedTo && <small>Assigned to: {note.assignedTo.email}</small>}
+                                {(note.createdBy?.id === parseInt(localStorage.getItem('userId')) || isAdmin) && (
                                     <>
                                         <button onClick={() => handleEditNote(note)} className="edit-btn">
                                             Edit
@@ -132,7 +156,7 @@ const Notes = () => {
                                             Delete
                                         </button>
                                     </>
-                                )} {/* ✅ */}
+                                )}
                             </div>
                         </div>
                     ))
