@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/welcome.css';
 
-
 const Welcome = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
@@ -20,7 +19,10 @@ const Welcome = () => {
         <div>
             <h2>Welcome</h2>
             <p>Hello Mr. {email}</p>
-            <button onClick={() => navigate('/notes')}>Go to Notes</button>
+            <div className="dashboard-buttons">
+                <button onClick={() => navigate('/notes')}>Go to Notes</button>
+                <button onClick={() => navigate('/planification')}>Go to Planning</button>
+            </div>
         </div>
     );
 };

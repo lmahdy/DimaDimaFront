@@ -4,6 +4,7 @@ import Register from './components/Register';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
 import Notes from './components/Notes';
+import Planning from './components/Planning'; // ✅ Added Planning import
 
 const isAuthenticated = () => !!localStorage.getItem('userEmail'); // Check if user is logged in
 
@@ -16,6 +17,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/welcome" element={isAuthenticated() ? <Welcome /> : <Navigate to="/login" />} />
                 <Route path="/notes" element={isAuthenticated() ? <Notes /> : <Navigate to="/login" />} />
+                <Route path="/planification" element={isAuthenticated() ? <Planning /> : <Navigate to="/login" />} /> {/* ✅ Added Planning Route */}
             </Routes>
         </Router>
     );
