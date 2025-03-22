@@ -20,8 +20,10 @@ const Welcome = () => {
             <h2>Welcome</h2>
             <p>Hello Mr. {email}</p>
             <div className="dashboard-buttons">
-                <button onClick={() => navigate('/notes')}>Go to Notes</button>
-                <button onClick={() => navigate('/planification')}>Go to Planning</button>
+            <button onClick={() => navigate('/notes')}>All Notes</button>
+    <button onClick={() => navigate('/my-notes')}>My Notes</button>
+    <button onClick={() => navigate('/planification')}>All Planning</button>
+    <button onClick={() => navigate('/my-planification')}>My Planning</button>
             </div>
         </div>
     );

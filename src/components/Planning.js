@@ -18,6 +18,8 @@ const Planning = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [selectedNote, setSelectedNote] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [userId, setUserId] = useState(null);
     const navigate = useNavigate();
 
     const getAuthHeader = () => ({
@@ -29,6 +31,10 @@ const Planning = () => {
 
     useEffect(() => {
         if (!localStorage.getItem('jwtToken')) navigate('/login');
+
+        const roles = JSON.parse(localStorage.getItem('userRoles') || '[]');
+        setIsAdmin(roles.includes('ROLE_ADMIN'));
+        setUserId(parseInt(localStorage.getItem('userId')));
         fetchData();
     }, [navigate]);
 
@@ -99,55 +105,57 @@ const Planning = () => {
         setTimeout(() => setError(''), 3000);
     };
 
-    // Handle note preview
     const handleNotePreview = (noteId) => {
         const note = notes.find(n => n.id === noteId);
         setSelectedNote(note);
         setIsModalOpen(true);
     };
 
-    // Custom dropdown for notes
-    const renderNoteSelection = () => (
-        <div className="custom-dropdown">
-            <div
-                className="dropdown-header"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-            >
-                {newPlanning.note_id
-                    ? notes.find(n => n.id === newPlanning.note_id)?.title
-                    : 'Select Note'}
-            </div>
-            {dropdownOpen && (
-                <div className="dropdown-list">
-                    {notes.map(note => (
-                        <div
-                            key={note.id}
-                            className="dropdown-item"
-                            onClick={() => {
-                                setNewPlanning(prev => ({ ...prev, note_id: note.id }));
-                                setDropdownOpen(false);
-                            }}
-                        >
-                            <span className="note-title">{note.title}</span>
-                            <button 
-                                className="preview-button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleNotePreview(note.id);
-                                }}
-                                title="Preview note"
-                            >
-                                👁️
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-    
+    const renderNoteSelection = () => {
+        const filteredNotes = isAdmin
+            ? notes
+            : notes.filter(note => note.createdBy?.id === userId);
 
-    // Modal for preview
+        return (
+            <div className="custom-dropdown">
+                <div
+                    className="dropdown-header"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                    {newPlanning.note_id
+                        ? notes.find(n => n.id === newPlanning.note_id)?.title
+                        : 'Select Note'}
+                </div>
+                {dropdownOpen && (
+                    <div className="dropdown-list">
+                        {filteredNotes.map(note => (
+                            <div
+                                key={note.id}
+                                className="dropdown-item"
+                                onClick={() => {
+                                    setNewPlanning(prev => ({ ...prev, note_id: note.id }));
+                                    setDropdownOpen(false);
+                                }}
+                            >
+                                <span className="note-title">{note.title}</span>
+                                <button
+                                    className="preview-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleNotePreview(note.id);
+                                    }}
+                                    title="Preview note"
+                                >
+                                    👁️
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const renderNoteModal = () => (
         isModalOpen && (
             <div className="note-modal-overlay">
@@ -225,6 +233,12 @@ const Planning = () => {
                     <div key={planning.id} className="planning-card">
                         <h3>{planning.note.title}</h3>
                         <p>{planning.note.content}</p>
+
+                        <div className="user-info">
+                            <small>Created by: {planning.note.createdBy?.email}</small><br />
+                            <small>Assigned to: {planning.note.assignedTo?.email || 'None'}</small>
+                        </div>
+
                         <div className="planning-details">
                             <span>Date: {new Date(planning.date_planifie).toLocaleDateString()}</span>
                             <span>Start: {planning.heure_debut.substring(0, 5)}</span>

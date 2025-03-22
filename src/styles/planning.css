@@ -181,3 +181,11 @@
     margin: 0.5rem 0;
     color: #666;
 }
+
+.user-info {
+    margin: 8px 0;
+    display: flex;
+    gap: 15px;
+    font-size: 0.9em;
+    color: #666;
+}
