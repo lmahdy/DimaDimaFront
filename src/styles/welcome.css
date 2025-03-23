@@ -52,3 +52,101 @@ button {
 button:hover {
     background: #D35400;
 }
+
+/* styles/welcome.css */
+.notification-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.notification-toggle {
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.notification-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: #f8f9fa;
+}
+
+.notification-message {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.notification-empty {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+}
+
+/* Planning Modal Styles */
+.planning-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .planning-modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .planning-details {
+    margin: 1rem 0;
+    line-height: 1.6;
+  }
+  
+  .planning-details p {
+    margin: 0.5rem 0;
+  }
+  
+  .close-button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .close-button:hover {
+    background: #0056b3;
+  }
