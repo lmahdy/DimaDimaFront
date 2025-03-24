@@ -7,6 +7,8 @@ import Notes from './components/Notes';
 import Planning from './components/Planning'; // ✅ Added Planning import
 import MyNotes from './components/MyNotes';
 import MyPlanning from './components/MyPlanning';
+import MySavedPlanning from './components/MySavedPlanning';
+
 
 const isAuthenticated = () => !!localStorage.getItem('userEmail'); // Check if user is logged in
 
@@ -22,6 +24,10 @@ function App() {
                 <Route path="/planification" element={isAuthenticated() ? <Planning /> : <Navigate to="/login" />} /> {/* ✅ Added Planning Route */}
                 <Route path="/my-notes" element={isAuthenticated() ? <MyNotes /> : <Navigate to="/login" />} />
 <Route path="/my-planification" element={isAuthenticated() ? <MyPlanning /> : <Navigate to="/login" />} />
+<Route 
+    path="/my-saved-planification" 
+    element={isAuthenticated() ? <MySavedPlanning /> : <Navigate to="/login" />} 
+/>
 
             </Routes>
         </Router>

@@ -40,16 +40,24 @@ const Planning = () => {
 
     const fetchData = async () => {
         try {
-            const [planningsRes, notesRes] = await Promise.all([
-                axios.get('http://127.0.0.1:8000/planification', getAuthHeader()),
-                axios.get('http://127.0.0.1:8000/note', getAuthHeader())
-            ]);
-            setPlannings(planningsRes.data);
-            setNotes(notesRes.data);
+          const [planningsRes, notesRes] = await Promise.all([
+            axios.get('http://127.0.0.1:8000/planification', getAuthHeader())
+              .catch(handle500),
+            axios.get('http://127.0.0.1:8000/note', getAuthHeader())
+          ]);
+          setPlannings(planningsRes.data);
+          setNotes(notesRes.data);
         } catch (error) {
-            handleError(error, 'fetching data');
+          handleError(error, 'fetching data');
         }
-    };
+      };
+      
+      const handle500 = (error) => {
+        if (error.response?.status === 500) {
+          navigate('/login');
+        }
+        throw error;
+      };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -109,6 +117,21 @@ const Planning = () => {
         const note = notes.find(n => n.id === noteId);
         setSelectedNote(note);
         setIsModalOpen(true);
+    };
+
+    const toggleSave = async (planningId) => {
+        try {
+            await axios.post(
+                `http://127.0.0.1:8000/planification/${planningId}/toggle-save`,
+                {},
+                getAuthHeader()
+            );
+            setPlannings(prev => prev.map(p =>
+                p.id === planningId ? { ...p, isSaved: !p.isSaved } : p
+            ));
+        } catch (error) {
+            handleError(error, 'toggling save');
+        }
     };
 
     const renderNoteSelection = () => {
@@ -245,7 +268,11 @@ const Planning = () => {
                             <span>End: {planning.heure_fin.substring(0, 5)}</span>
                             <span className={`status ${planning.statut.replace(' ', '-')}`}>{planning.statut}</span>
                         </div>
+
                         <div className="actions">
+                            <button onClick={() => toggleSave(planning.id)}>
+                                {planning.isSaved ? 'Unsave' : 'Save'}
+                            </button>
                             <button onClick={() => handleEdit(planning)}>Edit</button>
                             <button onClick={() => handleDelete(planning.id)}>Delete</button>
                         </div>

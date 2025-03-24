@@ -85,6 +85,7 @@ const Welcome = () => {
                 <button onClick={() => navigate('/my-notes')}>My Notes</button>
                 <button onClick={() => navigate('/planification')}>All Planning</button>
                 <button onClick={() => navigate('/my-planification')}>My Planning</button>
+                <button onClick={() => navigate('/my-saved-planification')}>My Saved Planifications</button>
             </div>
         </div>
     );
