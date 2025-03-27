@@ -9,6 +9,7 @@ const Notes = () => {
     const [editingNote, setEditingNote] = useState(null);
     const [error, setError] = useState('');
     const [users, setUsers] = useState([]);
+    const [recommendedUser, setRecommendedUser] = useState(null);
     const navigate = useNavigate();
 
     // Get user roles from localStorage
@@ -30,6 +31,7 @@ const Notes = () => {
             navigate('/login');
         }
         fetchNotes();
+        fetchRecommendedUser();
     }, [navigate]);
 
     useEffect(() => {
@@ -42,7 +44,7 @@ const Notes = () => {
             }
         };
         fetchUsers();
-    }, [navigate]);
+    }, []);
 
     const fetchNotes = async () => {
         try {
@@ -53,12 +55,25 @@ const Notes = () => {
         }
     };
 
+    const fetchRecommendedUser = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/users/recommended', getAuthHeader());
+            setRecommendedUser(response.data);
+            setNewNote(prev => ({
+                ...prev,
+                assignedTo: response.data.id
+            }));
+        } catch (error) {
+            console.error('Error fetching recommended user:', error);
+        }
+    };
+
     const handleCreateNote = async (e) => {
         e.preventDefault();
         try {
             await axios.post('http://127.0.0.1:8000/note/new', newNote, getAuthHeader());
             fetchNotes();
-            setNewNote({ title: '', content: '', assignedTo: '' });
+            setNewNote({ title: '', content: '', assignedTo: recommendedUser?.id || '' });
         } catch (error) {
             handleError(error, 'creating note');
         }
@@ -86,7 +101,7 @@ const Notes = () => {
             await axios.put(`http://127.0.0.1:8000/note/${editingNote.id}`, newNote, getAuthHeader());
             fetchNotes();
             setEditingNote(null);
-            setNewNote({ title: '', content: '', assignedTo: '' });
+            setNewNote({ title: '', content: '', assignedTo: recommendedUser?.id || '' });
         } catch (error) {
             handleError(error, 'updating note');
         }
@@ -108,26 +123,31 @@ const Notes = () => {
         <div className="notes-container">
             <h2>Notes</h2>
             {error && <div className="error-message">{error}</div>}
-            
+
             <form onSubmit={editingNote ? handleUpdateNote : handleCreateNote} className="note-form">
                 <input
                     type="text"
                     placeholder="Note title"
                     value={newNote.title}
-                    onChange={(e) => setNewNote({...newNote, title: e.target.value})}
+                    onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
                     required
                 />
                 <textarea
                     placeholder="Note content"
                     value={newNote.content}
-                    onChange={(e) => setNewNote({...newNote, content: e.target.value})}
+                    onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
                     required
                 />
                 <select
                     value={newNote.assignedTo}
-                    onChange={(e) => setNewNote({...newNote, assignedTo: e.target.value})}
+                    onChange={(e) => setNewNote({ ...newNote, assignedTo: e.target.value })}
                 >
                     <option value="">Assign to...</option>
+                    {recommendedUser && (
+                        <option value={recommendedUser.id} style={{ fontWeight: 'bold' }}>
+                            {recommendedUser.email} (Recommended)
+                        </option>
+                    )}
                     {users.map(user => (
                         <option key={user.id} value={user.id}>
                             {user.email}
