@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/notes.css';
@@ -10,9 +10,10 @@ const Notes = () => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState([]);
     const [recommendedUser, setRecommendedUser] = useState(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const recognition = useRef(null);
     const navigate = useNavigate();
 
-    // Get user roles from localStorage
     const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
     const isAdmin = userRoles.includes('ROLE_ADMIN');
 
@@ -44,6 +45,36 @@ const Notes = () => {
             }
         };
         fetchUsers();
+    }, []);
+
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognition.current = new SpeechRecognition();
+            recognition.current.continuous = true;
+            recognition.current.interimResults = true;
+            recognition.current.lang = 'en-US';
+
+            recognition.current.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map(result => result[0])
+                    .map(result => result.transcript)
+                    .join('');
+
+                if (event.results[0].isFinal) {
+                    setNewNote(prev => ({
+                        ...prev,
+                        content: prev.content + ' ' + transcript
+                    }));
+                }
+            };
+
+            recognition.current.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+            };
+        } else {
+            console.warn('Speech recognition not supported in this browser');
+        }
     }, []);
 
     const fetchNotes = async () => {
@@ -119,6 +150,15 @@ const Notes = () => {
         setTimeout(() => setError(''), 3000);
     };
 
+    const toggleRecording = () => {
+        if (isRecording) {
+            recognition.current.stop();
+        } else {
+            recognition.current.start();
+        }
+        setIsRecording(!isRecording);
+    };
+
     return (
         <div className="notes-container">
             <h2>Notes</h2>
@@ -132,12 +172,23 @@ const Notes = () => {
                     onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
                     required
                 />
-                <textarea
-                    placeholder="Note content"
-                    value={newNote.content}
-                    onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
-                    required
-                />
+                
+                <div className="voice-input-container">
+                    <textarea
+                        placeholder="Note content"
+                        value={newNote.content}
+                        onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                        required
+                    />
+                    <button 
+                        type="button" 
+                        onClick={toggleRecording}
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                    >
+                        {isRecording ? '⏹ Stop Recording' : '⏵ Start Recording'}
+                    </button>
+                </div>
+
                 <select
                     value={newNote.assignedTo}
                     onChange={(e) => setNewNote({ ...newNote, assignedTo: e.target.value })}
@@ -154,6 +205,7 @@ const Notes = () => {
                         </option>
                     ))}
                 </select>
+                
                 <button type="submit">{editingNote ? 'Update Note' : 'Create Note'}</button>
                 {editingNote && <button onClick={() => setEditingNote(null)}>Cancel</button>}
             </form>
@@ -169,12 +221,8 @@ const Notes = () => {
                                 {note.assignedTo && <small>Assigned to: {note.assignedTo.email}</small>}
                                 {(note.createdBy?.id === parseInt(localStorage.getItem('userId')) || isAdmin) && (
                                     <>
-                                        <button onClick={() => handleEditNote(note)} className="edit-btn">
-                                            Edit
-                                        </button>
-                                        <button onClick={() => handleDeleteNote(note.id)} className="delete-btn">
-                                            Delete
-                                        </button>
+                                        <button onClick={() => handleEditNote(note)} className="edit-btn">Edit</button>
+                                        <button onClick={() => handleDeleteNote(note.id)} className="delete-btn">Delete</button>
                                     </>
                                 )}
                             </div>
