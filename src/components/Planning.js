@@ -269,13 +269,18 @@ const Planning = () => {
                             <span className={`status ${planning.statut.replace(' ', '-')}`}>{planning.statut}</span>
                         </div>
 
-                        <div className="actions">
-                            <button onClick={() => toggleSave(planning.id)}>
-                                {planning.isSaved ? 'Unsave' : 'Save'}
-                            </button>
-                            <button onClick={() => handleEdit(planning)}>Edit</button>
-                            <button onClick={() => handleDelete(planning.id)}>Delete</button>
-                        </div>
+                       
+<div className="actions">
+    <button onClick={() => toggleSave(planning.id)}>
+        {planning.isSaved ? 'Unsave' : 'Save'}
+    </button>
+    {(planning.note.createdBy?.id === userId || isAdmin) && (
+        <>
+            <button onClick={() => handleEdit(planning)}>Edit</button>
+            <button onClick={() => handleDelete(planning.id)}>Delete</button>
+        </>
+    )}
+</div>
                     </div>
                 ))}
             </div>
