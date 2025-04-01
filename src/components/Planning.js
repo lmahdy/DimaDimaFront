@@ -20,6 +20,9 @@ const Planning = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [userId, setUserId] = useState(null);
+    const [selectedPlanning, setSelectedPlanning] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
     const navigate = useNavigate();
 
     const getAuthHeader = () => ({
@@ -38,26 +41,34 @@ const Planning = () => {
         fetchData();
     }, [navigate]);
 
+    useEffect(() => {
+        if (selectedPlanning) {
+            axios.get(`http://localhost:8000/planification/${selectedPlanning.id}/messages`, getAuthHeader())
+                .then(res => setMessages(res.data))
+                .catch(err => console.error(err));
+        }
+    }, [selectedPlanning]);
+
     const fetchData = async () => {
         try {
-          const [planningsRes, notesRes] = await Promise.all([
-            axios.get('http://127.0.0.1:8000/planification', getAuthHeader())
-              .catch(handle500),
-            axios.get('http://127.0.0.1:8000/note', getAuthHeader())
-          ]);
-          setPlannings(planningsRes.data);
-          setNotes(notesRes.data);
+            const [planningsRes, notesRes] = await Promise.all([
+                axios.get('http://127.0.0.1:8000/planification', getAuthHeader())
+                    .catch(handle500),
+                axios.get('http://127.0.0.1:8000/note', getAuthHeader())
+            ]);
+            setPlannings(planningsRes.data);
+            setNotes(notesRes.data);
         } catch (error) {
-          handleError(error, 'fetching data');
+            handleError(error, 'fetching data');
         }
-      };
-      
-      const handle500 = (error) => {
+    };
+
+    const handle500 = (error) => {
         if (error.response?.status === 500) {
-          navigate('/login');
+            navigate('/login');
         }
         throw error;
-      };
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -134,6 +145,25 @@ const Planning = () => {
         }
     };
 
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post(
+                `http://localhost:8000/planification/${selectedPlanning.id}/send-message`,
+                { content: newMessage },
+                getAuthHeader()
+            );
+            setNewMessage('');
+            const res = await axios.get(
+                `http://localhost:8000/planification/${selectedPlanning.id}/messages`,
+                getAuthHeader()
+            );
+            setMessages(res.data);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    };
+
     const renderNoteSelection = () => {
         const filteredNotes = isAdmin
             ? notes
@@ -205,6 +235,41 @@ const Planning = () => {
         )
     );
 
+    const renderMessageModal = () => (
+        selectedPlanning && (
+            <div className="message-modal">
+                <div className="message-content">
+                    <h3>Discussion for {selectedPlanning.note.title}</h3>
+                    <button className="close-button" onClick={() => setSelectedPlanning(null)}>Close</button>
+                    <div className="messages-list">
+                        {messages.map(msg => (
+                            <div key={msg.id} className="message">
+                                <div className="message-header">
+                                    <span className="sender">{msg.sender.email}</span>
+                                    <span className="timestamp">
+                                        {new Date(msg.createdAt).toLocaleDateString('en-GB')} {/* European format */}
+                                        {' '}
+                                        {new Date(msg.createdAt).toLocaleTimeString()}
+                                    </span>
+                                </div>
+                                <div className="message-content">{msg.content}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <form onSubmit={handleSendMessage}>
+                        <input
+                            type="text"
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Type your message..."
+                        />
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
+            </div>
+        )
+    );
+
     return (
         <div className="planning-container">
             <h2>Planning Management</h2>
@@ -250,6 +315,7 @@ const Planning = () => {
             </form>
 
             {renderNoteModal()}
+            {renderMessageModal()}
 
             <div className="planning-list">
                 {plannings.map(planning => (
@@ -269,18 +335,20 @@ const Planning = () => {
                             <span className={`status ${planning.statut.replace(' ', '-')}`}>{planning.statut}</span>
                         </div>
 
-                       
-<div className="actions">
-    <button onClick={() => toggleSave(planning.id)}>
-        {planning.isSaved ? 'Unsave' : 'Save'}
-    </button>
-    {(planning.note.createdBy?.id === userId || isAdmin) && (
-        <>
-            <button onClick={() => handleEdit(planning)}>Edit</button>
-            <button onClick={() => handleDelete(planning.id)}>Delete</button>
-        </>
-    )}
-</div>
+                        <div className="actions">
+                            <button onClick={() => toggleSave(planning.id)}>
+                                {planning.isSaved ? 'Unsave' : 'Save'}
+                            </button>
+                            <button onClick={() => setSelectedPlanning(planning)}>
+                                Open Discussion
+                            </button>
+                            {(planning.note.createdBy?.id === userId || isAdmin) && (
+                                <>
+                                    <button onClick={() => handleEdit(planning)}>Edit</button>
+                                    <button onClick={() => handleDelete(planning.id)}>Delete</button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
